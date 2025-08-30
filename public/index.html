@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamFrame - 3D Dream Visualization</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <!-- Landing Page -->
+    <div id="landing-page" class="page active">
+        <div class="hero-container">
+            <h1 class="hero-title">DreamFrame</h1>
+            <p class="hero-subtitle">Experience your dreams in 3D through EEG-guided visualization</p>
+            <button id="start-session-btn" class="cta-button">Start Dream Session</button>
+            <div class="features">
+                <div class="feature">
+                    <h3>🧠 EEG Simulation</h3>
+                    <p>Local brainwave monitoring for dream state detection</p>
+                </div>
+                <div class="feature">
+                    <h3>🎨 AI Metaphors</h3>
+                    <p>Transform thoughts into poetic dream narratives</p>
+                </div>
+                <div class="feature">
+                    <h3>🌌 3D Visuals</h3>
+                    <p>Immersive WebXR-ready dream landscapes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consent Modal -->
+    <div id="consent-modal" class="modal">
+        <div class="modal-content">
+            <h2>Privacy & Consent</h2>
+            <div class="privacy-statement">
+                <p><strong>Your Privacy Matters</strong></p>
+                <p>DreamFrame uses local EEG simulation only. No real brainwave data is collected or transmitted. All processing happens on your device.</p>
+                <ul>
+                    <li>✓ EEG data is simulated locally</li>
+                    <li>✓ No personal data leaves your device</li>
+                    <li>✓ No tracking or analytics</li>
+                    <li>✓ Session data is temporary</li>
+                </ul>
+            </div>
+            <div class="consent-checkbox">
+                <label>
+                    <input type="checkbox" id="consent-check">
+                    <span class="checkmark"></span>
+                    I consent to local EEG simulation for dream visualization
+                </label>
+            </div>
+            <div class="modal-buttons">
+                <button id="decline-btn" class="secondary-button">Decline</button>
+                <button id="accept-btn" class="primary-button" disabled>Accept & Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dream Session Page -->
+    <div id="dream-session" class="page">
+        <div class="session-header">
+            <h2>Dream Session Active</h2>
+            <div class="session-controls">
+                <button id="end-session-btn" class="secondary-button">End Session</button>
+                <div class="eeg-status">
+                    <span class="status-indicator" id="eeg-indicator"></span>
+                    <span id="eeg-status-text">Initializing EEG...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dream-container">
+            <!-- 3D Canvas -->
+            <canvas id="dream-canvas"></canvas>
+            
+            <!-- AI Video Display -->
+            <div id="dream-video-container" class="video-container" style="display: none;">
+                <video id="dream-video" controls autoplay muted loop>
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-controls">
+                    <button id="toggle-view-btn" class="secondary-button">Switch to 3D View</button>
+                    <button id="regenerate-video-btn" class="primary-button">Generate New Video</button>
+                </div>
+            </div>
+            
+            <!-- Dream Controls -->
+            <div class="dream-controls">
+                <div class="metaphor-input">
+                    <input type="text" id="dream-topic" placeholder="Enter a dream topic..." maxlength="50">
+                    <button id="generate-metaphor-btn">Generate Dream</button>
+                    <button id="generate-video-btn" class="video-button">Generate AI Video</button>
+                </div>
+                <div id="current-metaphor" class="metaphor-display"></div>
+                <div id="video-status" class="video-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Break Suggestion Modal -->
+    <div id="break-modal" class="modal">
+        <div class="modal-content">
+            <h2>🌙 Rest Suggestion</h2>
+            <p>We've detected signs of drowsiness for over 30 seconds. We suggest a short break for your comfort and well-being.</p>
+            <div class="modal-buttons">
+                <button id="continue-session-btn" class="secondary-button">Continue Session</button>
+                <button id="take-break-btn" class="primary-button">Take a Break</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Generating dream visualization...</p>
+    </div>
+
+    <script src="js/eeg-simulation.js"></script>
+    <script src="js/dream-visuals.js"></script>
+    <script src="js/metaphor-generator.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
