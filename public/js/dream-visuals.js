@@ -130,7 +130,7 @@ class DreamVisuals {
     }
 
     createParticleSystem() {
-        const particleCount = 1000;
+        const particleCount = 500;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
@@ -138,8 +138,8 @@ class DreamVisuals {
         for (let i = 0; i < particleCount; i++) {
             const i3 = i * 3;
             
-            // Random positions in a sphere
-            const radius = Math.random() * 25 + 5;
+            // Random positions in a larger sphere
+            const radius = Math.random() * 50 + 10;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.random() * Math.PI;
             
@@ -147,9 +147,9 @@ class DreamVisuals {
             positions[i3 + 1] = radius * Math.cos(phi);
             positions[i3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
             
-            // Dream-like colors
+            // Subtle dream-like colors
             const color = new THREE.Color();
-            color.setHSL(Math.random() * 0.3 + 0.5, 0.7, 0.5 + Math.random() * 0.3);
+            color.setHSL(0.6 + Math.random() * 0.2, 0.5, 0.7);
             colors[i3] = color.r;
             colors[i3 + 1] = color.g;
             colors[i3 + 2] = color.b;
@@ -159,11 +159,10 @@ class DreamVisuals {
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         
         const material = new THREE.PointsMaterial({
-            size: 0.1,
+            size: 0.5,
             vertexColors: true,
             transparent: true,
-            opacity: 0.6,
-            blending: THREE.AdditiveBlending
+            opacity: 0.4
         });
         
         this.particles = new THREE.Points(geometry, material);
@@ -363,16 +362,19 @@ class DreamVisuals {
     }
 
     createGeometricShape(element) {
-        let geometry;
+        const shapes = [
+            new THREE.SphereGeometry(2, 32, 32),
+            new THREE.CylinderGeometry(1.2, 1.2, 3.5, 32),
+            new THREE.ConeGeometry(1.8, 3.5, 32),
+            new THREE.OctahedronGeometry(2.5),
+            new THREE.TetrahedronGeometry(2.8),
+            new THREE.IcosahedronGeometry(2.2),
+            new THREE.DodecahedronGeometry(2.3),
+            new THREE.TorusGeometry(1.8, 0.6, 16, 32),
+            new THREE.TorusKnotGeometry(1.5, 0.4, 100, 16)
+        ];
         
-        if (element.shape === 'crystal') {
-            geometry = new THREE.OctahedronGeometry(3);
-        } else if (element.shape === 'peak') {
-            geometry = new THREE.ConeGeometry(2, 6, 8);
-        } else {
-            geometry = new THREE.IcosahedronGeometry(2.5, 1);
-        }
-        
+        const geometry = shapes[Math.floor(Math.random() * shapes.length)];
         const material = new THREE.MeshPhongMaterial({
             color: element.color || 0x64b5f6,
             transparent: true,
@@ -437,14 +439,26 @@ class DreamVisuals {
     }
 
     createDefaultDreamObject() {
-        const geometry = new THREE.TorusGeometry(4, 1.5, 16, 32); // Much larger
-        const material = new THREE.MeshBasicMaterial({
+        // Create multiple basic 3D shapes (no cubes)
+        const shapes = [
+            new THREE.SphereGeometry(2, 32, 32),
+            new THREE.CylinderGeometry(1.5, 1.5, 4, 32),
+            new THREE.ConeGeometry(2, 4, 32),
+            new THREE.TorusGeometry(2, 0.8, 16, 32),
+            new THREE.OctahedronGeometry(2.5),
+            new THREE.TetrahedronGeometry(3),
+            new THREE.IcosahedronGeometry(2.5)
+        ];
+        
+        const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+        const material = new THREE.MeshPhongMaterial({
             color: 0x64b5f6,
-            transparent: false,
-            wireframe: false
+            transparent: true,
+            opacity: 0.8,
+            shininess: 100
         });
         
-        return new THREE.Mesh(geometry, material);
+        return new THREE.Mesh(randomShape, material);
     }
 
     getRandomPosition(index) {

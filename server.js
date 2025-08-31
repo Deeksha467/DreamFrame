@@ -16,6 +16,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Handle favicon.ico to prevent 404 errors
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end();
+});
+
 // AI Metaphor Generator endpoint
 app.post('/metaphor', async (req, res) => {
     try {
@@ -28,13 +33,14 @@ app.post('/metaphor', async (req, res) => {
         // Try different AI APIs in order of preference
         let metaphor = null;
         
-        // 1. Try Hugging Face API (Free)
-        if (process.env.HUGGINGFACE_API_KEY && !metaphor) {
+        // 1. Try Hugging Face API (Free) - Skip if no valid key
+        if (process.env.HUGGINGFACE_API_KEY && (process.env.HUGGINGFACE_API_KEY.startsWith('hf_') || process.env.HUGGINGFACE_API_KEY.startsWith('yhf_')) && !metaphor) {
             try {
                 metaphor = await generateHuggingFaceMetaphor(topic);
                 console.log('Generated metaphor using Hugging Face');
             } catch (error) {
                 console.error('Hugging Face API error:', error.message);
+                console.log('Falling back to rule-based generation');
             }
         }
         
@@ -156,11 +162,11 @@ app.post('/generate-video', async (req, res) => {
             }
         }
         
-        // 3. Try Stable Video Diffusion via Hugging Face
+        // 3. Try Stable Video Diffusion
         if (process.env.HUGGINGFACE_API_KEY && !videoResult) {
             try {
                 videoResult = await generateStableVideo(videoPrompt);
-                console.log('Generated video using Stable Video Diffusion');
+                console.log('Generated video using Stable Video');
             } catch (error) {
                 console.error('Stable Video API error:', error.message);
             }
@@ -169,10 +175,11 @@ app.post('/generate-video', async (req, res) => {
         // 4. Fallback to procedural video generation
         if (!videoResult) {
             videoResult = {
-                status: 'fallback',
-                message: 'AI video generation not available, using 3D visualization',
+                status: 'success',
+                message: 'Using 3D visualization instead of video',
                 videoUrl: null,
-                prompt: videoPrompt
+                prompt: videoPrompt,
+                fallback: true
             };
             console.log('Using 3D visualization fallback for video');
         }
@@ -227,45 +234,54 @@ async function generateHuggingFaceMetaphor(topic) {
 
 // Cohere API function
 async function generateCohereMetaphor(topic) {
-    const { cohere } = require('cohere-ai');
-    cohere.init(process.env.COHERE_API_KEY);
+    const { CohereClient } = require('cohere-ai');
+    const cohere = new CohereClient({
+        token: process.env.COHERE_API_KEY,
+    });
     
     const response = await cohere.generate({
         model: 'command-light',
         prompt: `Create a beautiful, dreamlike metaphor for "${topic}". Make it poetic and visual, 1-2 sentences:`,
-        max_tokens: 80,
+        maxTokens: 80,
         temperature: 0.8
     });
     
-    return response.body.generations[0].text.trim();
+    return response.generations[0].text.trim();
 }
 
 // Runway ML API function
 async function generateRunwayVideo(prompt) {
-    const response = await fetch('https://api.runwayml.com/v1/generate', {
+    const response = await fetch('https://api.runwayml.com/v1/tasks', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${process.env.RUNWAY_API_KEY}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-Runway-Version': '2024-09-13'
         },
         body: JSON.stringify({
-            prompt: prompt,
-            model: 'runway-ml/stable-video',
-            duration: 4,
-            resolution: '512x512',
-            fps: 24
+            taskType: 'gen3a_turbo',
+            internal: false,
+            options: {
+                promptText: prompt,
+                duration: 5,
+                ratio: '16:9',
+                seed: Math.floor(Math.random() * 1000000)
+            }
         })
     });
     
     if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`Runway ML API error details: ${response.status} - ${errorText}`);
+        console.log(`Request headers: Authorization: Bearer ${process.env.RUNWAY_API_KEY?.substring(0, 20)}...`);
         throw new Error(`Runway ML API error: ${response.status}`);
     }
     
     const data = await response.json();
     return {
         status: 'success',
-        videoUrl: data.video_url,
-        taskId: data.task_id,
+        videoUrl: data.output?.[0] || null,
+        taskId: data.id,
         provider: 'runway'
     };
 }
